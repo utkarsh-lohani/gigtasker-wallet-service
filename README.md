@@ -63,3 +63,61 @@ Ensure the common library is installed in your local Maven repository first.
 ```bash
 cd ../gigtasker-common
 mvn clean install
+```
+
+### 2. Build the Service
+```bash
+mvn clean package -DskipTests
+```
+
+###3. Run via Docker
+This service is orchestrated via the root docker-compose.yml.
+
+```bash
+cd ../../gigtasker-config
+docker-compose up -d --build wallet-service
+```
+
+---
+
+## 🔌 API Documentation
+
+Once the application is running, the API documentation is available via the **Centralized Gateway Portal**.
+
+### 📘 Swagger UI
+Access the Swagger UI at:
+
+👉 **http://localhost:9090/swagger-ui.html**
+
+From the dropdown, select **"Wallet Service"**.
+
+---
+
+## 🔐 Configuration
+
+Configuration is managed by the **Config Server**.
+
+- **Local Config:** `gigtasker-config/wallet-service.yml`
+- **Docker Config:** `gigtasker-config/application-docker.yml`  
+  *(Inherits DB/Rabbit settings)*
+- **Docker Specific Overrides:** `gigtasker-config/wallet-service-docker.yml`  
+  *(Overrides DB URL to `wallet_db`)*
+
+---
+
+## 🤝 Contributing
+
+### Flow
+Ensure that any logic change maintains the equation:
+
+**Total System Money = Sum(Balances) + Sum(HeldFunds)**
+
+### Precision
+- Always use **BigDecimal** for currency.  
+- **Never** use `Double`.
+
+
+### 📄 Direct JSON (Internal)
+The raw OpenAPI JSON is available at:
+
+👉 **http://localhost:8080/v3/api-docs**
