@@ -1,0 +1,76 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-wallets-table
+      author: utkarsh.lohani
+      changes:
+        - createTable:
+            tableName: wallets
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+
+              - column:
+                  name: user_id
+                  type: UUID
+                  constraints:
+                    nullable: false
+                    unique: true
+
+              - column:
+                  name: balance
+                  type: DECIMAL(19,2)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+              - column:
+                  name: held_funds
+                  type: DECIMAL(19,2)
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+
+        # Unique index for user_id
+        - createIndex:
+            indexName: idx_wallets_user_id
+            tableName: wallets
+            unique: true
+            columns:
+              - column:
+                  name: user_id
+
+        # Optional indexes for reporting/analytics
+        - createIndex:
+            indexName: idx_wallets_balance
+            tableName: wallets
+            columns:
+              - column:
+                  name: balance
+
+        - createIndex:
+            indexName: idx_wallets_held_funds
+            tableName: wallets
+            columns:
+              - column:
+                  name: held_funds
+
+      rollback:
+        - dropIndex:
+            tableName: wallets
+            indexName: idx_wallets_held_funds
+
+        - dropIndex:
+            tableName: wallets
+            indexName: idx_wallets_balance
+
+        - dropIndex:
+            tableName: wallets
+            indexName: idx_wallets_user_id
+
+        - dropTable:
+            tableName: wallets
