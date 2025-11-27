@@ -1,5 +1,7 @@
 package com.gigtasker.walletservice.listener;
 
+import com.gigtasker.walletservice.config.RabbitMQConfig;
+import com.gigtasker.walletservice.dto.TaskCancelledEvent;
 import com.gigtasker.walletservice.dto.TaskCompletedEvent;
 import com.gigtasker.walletservice.entity.WalletTransaction;
 import com.gigtasker.walletservice.enums.TransactionType;
@@ -20,7 +22,7 @@ public class TaskEventListener {
     private final WalletService walletService;
     private final WalletTransactionRepository transactionRepository;
 
-    @RabbitListener(queues = "wallet.task.completed.queue")
+    @RabbitListener(queues = RabbitMQConfig.WALLET_QUEUE)
     public void handleTaskCompleted(TaskCompletedEvent event) {
         Long taskId = event.task().getId();
         log.info("Received Completion Event for Task {}", taskId);
@@ -42,6 +44,17 @@ public class TaskEventListener {
 
         } catch (Exception e) {
             log.error("PAYMENT FAILED for Task #{}", taskId, e);
+        }
+    }
+
+    @RabbitListener(queues = RabbitMQConfig.WALLET_REFUND_QUEUE)
+    public void handleTaskCancelled(TaskCancelledEvent event) {
+        log.info("Processing Refund for Task #{}", event.taskId());
+        try {
+            walletService.refundFunds(event.posterId(), event.taskId());
+            log.info("REFUND SUCCESS for Task #{}", event.taskId());
+        } catch (Exception e) {
+            log.error("REFUND FAILED for Task #{}", event.taskId(), e);
         }
     }
 }

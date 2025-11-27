@@ -3,6 +3,7 @@ package com.gigtasker.walletservice.controller;
 import com.gigtasker.walletservice.dto.HoldRequest;
 import com.gigtasker.walletservice.dto.TransferRequest;
 import com.gigtasker.walletservice.entity.Wallet;
+import com.gigtasker.walletservice.entity.WalletTransaction;
 import com.gigtasker.walletservice.service.WalletService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -46,5 +48,11 @@ public class WalletController {
                 request.amount(),
                 request.taskId());
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<List<WalletTransaction>> getWalletTransactionsHistory(@AuthenticationPrincipal Jwt jwt) {
+        UUID userId = UUID.fromString(jwt.getClaimAsString("sub"));
+        return ResponseEntity.ok(walletService.getWalletTransactionsHistory(userId));
     }
 }

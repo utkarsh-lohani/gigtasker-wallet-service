@@ -5,11 +5,14 @@ import com.gigtasker.walletservice.enums.TransactionType;
 import com.gigtasker.walletservice.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -103,5 +106,36 @@ public class WalletService {
                 .timestamp(LocalDateTime.now())
                 .build();
         walletTransactionRepository.save(txn);
+    }
+
+    @Transactional
+    public void refundFunds(UUID posterId, Long taskId) {
+        Wallet wallet = self.getWallet(posterId);
+
+        // 1. Find how much we held
+        // We look for the HOLD transaction for this specific task
+        WalletTransaction holdTx = walletTransactionRepository.findByTaskIdAndType(taskId, TransactionType.HOLD)
+                .orElseThrow(() -> new RuntimeException("No active HOLD found for Task " + taskId));
+
+        BigDecimal amountToRefund = holdTx.getAmount();
+
+        // 2. Check consistency
+        if (wallet.getHeldFunds().compareTo(amountToRefund) < 0) {
+            throw new IllegalStateException("Data Error: Held funds are lower than refund amount!");
+        }
+
+        // 3. Reverse the flow
+        // Held -> Balance
+        wallet.setHeldFunds(wallet.getHeldFunds().subtract(amountToRefund));
+        wallet.setBalance(wallet.getBalance().add(amountToRefund));
+
+        walletRepository.save(wallet);
+
+        logTransaction(wallet.getId(), amountToRefund, TransactionType.REFUND, "Refund for Task #" + taskId, taskId);
+    }
+
+    public List<WalletTransaction> getWalletTransactionsHistory(UUID uuid) {
+        Wallet wallet = self.getWallet(uuid);
+        return walletTransactionRepository.findAllByWalletIdOrderByTimestampDesc(wallet.getId());
     }
 }

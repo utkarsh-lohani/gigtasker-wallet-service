@@ -15,6 +15,8 @@ public class RabbitMQConfig {
     public static final String TASK_EXCHANGE_NAME = "task-exchange";
     public static final String TASK_COMPLETED_KEY = "task.completed";
     public static final String WALLET_QUEUE = "wallet.task.completed.queue";
+    public static final String TASK_CANCELLED_KEY = "task.cancelled";
+    public static final String WALLET_REFUND_QUEUE = "wallet.task.cancelled.queue";
 
     @Bean
     public MessageConverter jsonMessageConverter() {
@@ -34,5 +36,13 @@ public class RabbitMQConfig {
     @Bean
     public Binding walletBinding() {
         return BindingBuilder.bind(walletQueue()).to(taskExchange()).with(TASK_COMPLETED_KEY);
+    }
+
+    @Bean
+    public Queue refundQueue() { return new Queue(WALLET_REFUND_QUEUE, true); }
+
+    @Bean
+    public Binding refundBinding() {
+        return BindingBuilder.bind(refundQueue()).to(taskExchange()).with(TASK_CANCELLED_KEY);
     }
 }
