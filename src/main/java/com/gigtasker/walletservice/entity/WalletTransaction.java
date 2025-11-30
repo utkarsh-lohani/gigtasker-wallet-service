@@ -2,7 +2,11 @@ package com.gigtasker.walletservice.entity;
 
 import com.gigtasker.walletservice.enums.TransactionType;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
